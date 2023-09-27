@@ -1,0 +1,26 @@
+# pyup: ignore file
+-r requirements-sys.txt
+# pylint>=2.5 requires astroid>=2.4
+# install/update sometime fails randomly, so enforce it
+astroid
+bandit
+bump2version>=1.0.1
+codacy-coverage
+coverage
+doc8>=0.8.1
+docformatter==1.5.0     # add support of config file
+flake8<6  # FIXME: false positive redefinition (https://github.com/PyCQA/pyflakes/issues/757)
+flynt
+isort>=5
+mock<4
+mypy
+parameterized
+pluggy>=0.7
+pytest
+pytest-rerunfailures
+pydocstyle
+pylint>=2.15.4; python_version >= "3.7"
+pylint-per-file-ignores; python_version >= "3.7"
+pylint_quotes
+safety
+typing_extensions

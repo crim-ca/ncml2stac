@@ -1,0 +1,101 @@
+## Make
+[Mm]akefile.config
+downloads
+
+## Environment
+env
+venv
+
+## Conda
+environment.yml
+
+## Node
+package.json
+package-lock.json
+node_modules
+
+## Docker
+#Dockerfile
+
+## Celery
+celeryconfig*
+celery-config*
+celerybeat-schedule.*
+
+## Python / Extensions etc.
+*~
+*.mo
+*.so
+*.py[cod]
+*.bak
+*.sqlite
+*.egg[s]
+*.egg-info
+*egg[s]
+__pycache__
+.python_history
+.ipynb_checkpoints
+
+## Unit test / Coverage reports
+*.log
+*.lock
+.cache
+.coverage
+.pylint.d/
+.pytest_cache
+.tox
+coverage.xml
+coverage
+reports
+nosetests.xml
+unit_tests/testdata.json
+result[s].xml
+testdata.json
+
+## R
+*.Rhistory
+
+## Eclipse / PyDev
+.project
+.pydevproject
+.settings
+
+## VS Code
+*.vscode
+
+## PyCharm
+*.idea
+
+## Intellij
+*.iml
+
+## Kate
+*.kate-swp
+
+## Sublime Text Editor
+*.sublime*
+
+## External Sources
+[Bb]uild
+src
+
+## IPython
+.ipynb_checkpoints
+
+## gcc/fortran
+*.o
+*.a
+*.mod
+*.out
+
+## snappy
+esa-snap_sentinel_unix_6_0.sh
+response.varfile
+
+## project process results
+*.tif
+*.zip
+./workflow[s]
+
+## old project sources
+[Bb]in
