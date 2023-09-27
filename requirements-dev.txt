@@ -1,5 +1,15 @@
 # pyup: ignore file
 -r requirements-sys.txt
+
+# --------------------------------
+# testing the README commands:
+# --------------------------------
+jupyter-repo2docker
+ipython2cwl
+
+# ---------------------
+# General DevOps checks
+# ---------------------
 # pylint>=2.5 requires astroid>=2.4
 # install/update sometime fails randomly, so enforce it
 astroid
