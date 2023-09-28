@@ -376,7 +376,7 @@ ifeq ($(filter $(TEST_VERBOSITY),"--capture"),)
 endif
 
 # autogen tests variants with pre-install of dependencies using the '-only' target references
-TESTS := coverage notebook
+TESTS := coverage python notebook
 TESTS := $(addprefix test-, $(TESTS))
 
 $(TESTS): test-%: install-dev test-%-only
@@ -388,24 +388,36 @@ test: clean-test test-all	## alias for 'test-all' target
 test-all: $(TESTS) test-docker		## run all tests (including long running tests)
 
 .PHONY: test-only
-test-only: mkdir-reports			## run all tests but without prior validation of installed dependencies
-	@echo "Running all tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		--junitxml "$(REPORTS_DIR)/test-results.xml"'
+test-only: $(addsuffix -only, $(TESTS))
+
+.PHONY: test-python-only
+test-python-only: mkdir-reports		## run all tests but without prior validation of installed dependencies
+	@echo "Running Python tests..."
+	@test ! -d "$(APP_ROOT)/tests" && echo "No Python tests found!" || \
+		bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
+			-c "$(APP_ROOT)/setup.cfg" \
+			--junitxml "$(REPORTS_DIR)/test-results.xml"'
 
 .PHONY: test-docker
 test-docker: docker-test	## alias to 'docker-test' execution smoke test of built docker images
 
 .PHONY: test-notebook-only
 test-notebook-only: mkdir-reports	## run notebook tests but without prior validation of installed dependencies
-	@echo "Running notebook tests..."
+	@echo "Running Jupyter Notebook tests..."
 	@bash -c '$(CONDA_CMD) pytest notebooks $(TEST_VERBOSITY) \
+			-c "$(APP_ROOT)/setup.cfg" \
 			--junitxml "$(REPORTS_DIR)/test-notebook-results.xml"'
 
 .PHONY: test-coverage-only
 test-coverage-only: mkdir-reports  ## run all tests using coverage analysis
 	@echo "Running coverage analysis..."
-	@bash -c '$(CONDA_CMD) coverage run --rcfile="$(APP_ROOT)/setup.cfg" "$$(which pytest)" "$(APP_ROOT)/tests" || true'
+	@bash -c '$(CONDA_CMD) \
+		pytest \
+		--nb-coverage \
+		--cov=pytest_notebook \
+		--cov-config "$(APP_ROOT)/setup.cfg" \
+		-c "$(APP_ROOT)/setup.cfg" \
+		"$(APP_ROOT)" || true'
 	@bash -c '$(CONDA_CMD) coverage xml --rcfile="$(APP_ROOT)/setup.cfg" -i -o "$(REPORTS_DIR)/coverage.xml"'
 	@bash -c '$(CONDA_CMD) coverage report --rcfile="$(APP_ROOT)/setup.cfg" -i -m'
 	@bash -c '$(CONDA_CMD) coverage html --rcfile="$(APP_ROOT)/setup.cfg" -d "$(REPORTS_DIR)/coverage"'

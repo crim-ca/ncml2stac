@@ -30,8 +30,9 @@ nbqa
 parameterized
 pluggy>=0.7
 pytest
-pytest-rerunfailures
+pytest-cov
 pytest-notebook
+pytest-rerunfailures
 pycodestyle
 pydocstyle
 pylint>=2.15.4; python_version >= "3.7"
