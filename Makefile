@@ -222,23 +222,23 @@ conda-env-export:		## export the conda environment
 
 ## -- Build targets ------------------------------------------------------------------------------------------------- ##
 
-.PHONY: install
-install: install-all    ## alias for 'install-all' target
-
 .PHONY: install-run
 install-run: conda-install install-sys install-pkg install-raw 	## install requirements and application to run locally
 
 .PHONY: install-all
 install-all: conda-install install-sys install-pkg install-pip install-dev  ## install application with all dependencies
 
+.PHONY: install
+install: install-pip install-pkg   ## alias for 'install-all' target
+
 .PHONY: install-doc
-install-doc: install-pip	## install documentation dependencies
+install-doc: install	## install documentation dependencies
 	@echo "Installing development packages with pip..."
 	@bash -c '$(CONDA_CMD) pip install $(PIP_XARGS) -r "$(APP_ROOT)/requirements-doc.txt"'
 	@echo "Install with pip complete. Run documentation generation with 'make docs' target."
 
 .PHONY: install-dev
-install-dev: install-pip	## install development and test dependencies
+install-dev: install	## install development and test dependencies
 	@echo "Installing development packages with pip..."
 	@bash -c '$(CONDA_CMD) pip install $(PIP_XARGS) -r "$(APP_ROOT)/requirements-dev.txt"'
 	@echo "Install with pip complete. Test service with 'make test*' variations."
