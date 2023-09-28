@@ -45,7 +45,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10"]
         allow-failure: [false]
-        test-case: [test-unit-only, test-func-only]
+        test-case: [test-only]
         include:
           # experimental python
           - os: ubuntu-latest
