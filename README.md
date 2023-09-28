@@ -1,7 +1,7 @@
 # NCML to STAC
 
 [![version](https://img.shields.io/github/v/tag/crim-ca/ncml2stac?label=latest%20version)](
-https://github.com/crim-ca/ncml2stac/tree/0.0.0
+https://github.com/crim-ca/ncml2stac/tree/0.0.1
 )
 
 Converts a NCML XML with NetCDF file reference to a STAC Item JSON definition.

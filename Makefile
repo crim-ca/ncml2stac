@@ -9,7 +9,7 @@ MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 # Application
 APP_ROOT    := $(abspath $(lastword $(MAKEFILE_NAME))/..)
 APP_NAME    := $(shell basename $(APP_ROOT))
-APP_VERSION ?= 0.0.0
+APP_VERSION := 0.0.1
 DOCKER_REPO ?= crimca/ncml2stac
 
 # guess OS (Linux, Darwin,...)
