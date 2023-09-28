@@ -10,8 +10,7 @@ MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 APP_ROOT    := $(abspath $(lastword $(MAKEFILE_NAME))/..)
 APP_NAME    := $(shell basename $(APP_ROOT))
 APP_VERSION := 0.0.1
-DOCKER_REPO ?=
-#DOCKER_REPO ?= docker-registry.crim.ca/ogc/weaver
+DOCKER_REPO ?= crimca/ncml2stac
 
 # guess OS (Linux, Darwin,...)
 OS_NAME := $(shell uname -s 2>/dev/null || echo "unknown")
@@ -223,23 +222,23 @@ conda-env-export:		## export the conda environment
 
 ## -- Build targets ------------------------------------------------------------------------------------------------- ##
 
-.PHONY: install
-install: install-all    ## alias for 'install-all' target
-
 .PHONY: install-run
 install-run: conda-install install-sys install-pkg install-raw 	## install requirements and application to run locally
 
 .PHONY: install-all
 install-all: conda-install install-sys install-pkg install-pip install-dev  ## install application with all dependencies
 
+.PHONY: install
+install: install-pip install-pkg   ## alias for 'install-all' target
+
 .PHONY: install-doc
-install-doc: install-pip	## install documentation dependencies
+install-doc: install	## install documentation dependencies
 	@echo "Installing development packages with pip..."
 	@bash -c '$(CONDA_CMD) pip install $(PIP_XARGS) -r "$(APP_ROOT)/requirements-doc.txt"'
 	@echo "Install with pip complete. Run documentation generation with 'make docs' target."
 
 .PHONY: install-dev
-install-dev: install-pip	## install development and test dependencies
+install-dev: install	## install development and test dependencies
 	@echo "Installing development packages with pip..."
 	@bash -c '$(CONDA_CMD) pip install $(PIP_XARGS) -r "$(APP_ROOT)/requirements-dev.txt"'
 	@echo "Install with pip complete. Test service with 'make test*' variations."
@@ -378,82 +377,48 @@ ifeq ($(filter $(TEST_VERBOSITY),"--capture"),)
 endif
 
 # autogen tests variants with pre-install of dependencies using the '-only' target references
-TESTS := unit func cli workflow online offline no-tb14 spec coverage
+TESTS := coverage python notebook
 TESTS := $(addprefix test-, $(TESTS))
 
 $(TESTS): test-%: install-dev test-%-only
 
 .PHONY: test
-test: clean-test test-all   ## alias for 'test-all' target
+test: clean-test test-all	## alias for 'test-all' target
 
 .PHONY: test-all
-test-all: install-dev test-only		## run all tests (including long running tests)
+test-all: $(TESTS) test-docker		## run all tests (including long running tests)
 
 .PHONY: test-only
-test-only: mkdir-reports			## run all tests but without prior validation of installed dependencies
-	@echo "Running all tests (including slow and online tests)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		--junitxml "$(REPORTS_DIR)/test-results.xml"'
+test-only: $(addsuffix -only, $(TESTS))
 
-.PHONY: test-unit-only
-test-unit-only: mkdir-reports 		## run unit tests (skip long running and online tests)
-	@echo "Running unit tests (skip slow and online tests)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not slow and not online and not functional" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-func-only
-test-func-only: mkdir-reports   	## run functional tests (online and usage specific)
-	@echo "Running functional tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "functional" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-cli-only
-test-cli-only: mkdir-reports   		## run WeaverClient and CLI tests
-	@echo "Running CLI tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "cli" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-workflow-only
-test-workflow-only:	mkdir-reports	## run EMS workflow End-2-End tests
-	@echo "Running workflow tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "workflow" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-online-only
-test-online-only: mkdir-reports  	## run online tests (running instance required)
-	@echo "Running online tests (running instance required)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "online" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-offline-only
-test-offline-only: mkdir-reports  	## run offline tests (not marked as online)
-	@echo "Running offline tests (not marked as online)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not online" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-no-tb14-only
-test-no-tb14-only: mkdir-reports  	## run all tests except ones marked for 'Testbed-14'
-	@echo "Running all tests except ones marked for 'Testbed-14'..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not testbed14" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-spec-only
-test-spec-only:	mkdir-reports  ## run tests with custom specification (pytest format) [make SPEC='<spec>' test-spec]
-	@echo "Running custom tests from input specification..."
-	@[ "${SPEC}" ] || ( echo ">> 'SPEC' is not set"; exit 1 )
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-k "${SPEC}" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-smoke
-test-smoke: docker-test     ## alias to 'docker-test' executing smoke test of built docker images
+.PHONY: test-python-only
+test-python-only: mkdir-reports		## run all tests but without prior validation of installed dependencies
+	@echo "Running Python tests..."
+	@test ! -d "$(APP_ROOT)/tests" && echo "No Python tests found!" || \
+		bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
+			-c "$(APP_ROOT)/setup.cfg" \
+			--junitxml "$(REPORTS_DIR)/test-results.xml"'
 
 .PHONY: test-docker
-test-docker: docker-test    ## alias to 'docker-test' execution smoke test of built docker images
+test-docker: docker-test	## alias to 'docker-test' execution smoke test of built docker images
+
+.PHONY: test-notebook-only
+test-notebook-only: mkdir-reports	## run notebook tests but without prior validation of installed dependencies
+	@echo "Running Jupyter Notebook tests..."
+	@bash -c '$(CONDA_CMD) pytest notebooks $(TEST_VERBOSITY) \
+			-c "$(APP_ROOT)/setup.cfg" \
+			--junitxml "$(REPORTS_DIR)/test-notebook-results.xml"'
 
 .PHONY: test-coverage-only
 test-coverage-only: mkdir-reports  ## run all tests using coverage analysis
 	@echo "Running coverage analysis..."
-	@bash -c '$(CONDA_CMD) coverage run --rcfile="$(APP_ROOT)/setup.cfg" "$$(which pytest)" "$(APP_ROOT)/tests" || true'
+	@bash -c '$(CONDA_CMD) \
+		pytest \
+		--nb-coverage \
+		--cov=pytest_notebook \
+		--cov-config "$(APP_ROOT)/setup.cfg" \
+		-c "$(APP_ROOT)/setup.cfg" \
+		"$(APP_ROOT)" || true'
 	@bash -c '$(CONDA_CMD) coverage xml --rcfile="$(APP_ROOT)/setup.cfg" -i -o "$(REPORTS_DIR)/coverage.xml"'
 	@bash -c '$(CONDA_CMD) coverage report --rcfile="$(APP_ROOT)/setup.cfg" -i -m'
 	@bash -c '$(CONDA_CMD) coverage html --rcfile="$(APP_ROOT)/setup.cfg" -d "$(REPORTS_DIR)/coverage"'
@@ -465,7 +430,8 @@ coverage: test-coverage  ## alias to run test with coverage analysis
 ## -- [variants '<target>-only' without '-only' suffix are also available with pre-install setup]
 
 # autogen check variants with pre-install of dependencies using the '-only' target references
-CHECKS := pep8 lint security security-code security-deps doc8 docf fstring docstring links imports
+CHECKS := pep8 lint security security-code security-deps docf fstring docstring imports
+# FIXME: unused for now (needed for /docs): doc8 links
 CHECKS := $(addprefix check-, $(CHECKS))
 
 # items that should not install python dev packages should be added here instead
@@ -494,31 +460,22 @@ check-pep8-only: mkdir-reports 		## check for PEP8 code style issues
 	@echo "Running pep8 code style checks..."
 	@-rm -fr "$(REPORTS_DIR)/check-pep8.txt"
 	@bash -c '$(CONDA_CMD) \
-		flake8 --config="$(APP_ROOT)/setup.cfg" --output-file="$(REPORTS_DIR)/check-pep8.txt" --tee'
+		nbqa flake8 "$(APP_ROOT)" --config="$(APP_ROOT)/setup.cfg" --output-file="$(REPORTS_DIR)/check-pep8.txt" --tee'
 
 .PHONY: check-lint-only
 check-lint-only: mkdir-reports  	## check linting of code style
 	@echo "Running linting code style checks..."
 	@-rm -fr "$(REPORTS_DIR)/check-lint.txt"
 	@bash -c '$(CONDA_CMD) \
-		pylint \
+		nbqa pylint \
+			"$(APP_ROOT)" \
 			--load-plugins pylint_quotes \
 			--rcfile="$(APP_ROOT)/.pylintrc" \
 			--reports y \
-			"$(APP_ROOT)/weaver" "$(APP_ROOT)/tests" \
 		1> >(tee "$(REPORTS_DIR)/check-lint.txt")'
 
 .PHONY: check-security-only
 check-security-only: check-security-code-only check-security-deps-only  ## run security checks
-
-# FIXME: safety ignore file (https://github.com/pyupio/safety/issues/351)
-# ignored codes:
-#	42194: https://github.com/kvesteri/sqlalchemy-utils/issues/166  # not fixed since 2015
-#	42498: celery<5.2.0 bumps kombu>=5.2.1 with security fixes to {redis,sqs}  # mongo is used by default in Weaver
-#	43738: celery<5.2.2 CVE-2021-23727: trusts the messages and metadata stored in backends
-#	45185: pylint<2.13.0: unrelated doc extension (https://github.com/PyCQA/pylint/issues/5322)
-SAFETY_IGNORE := 42194 42498 43738 45185
-SAFETY_IGNORE := $(addprefix "-i ",$(SAFETY_IGNORE))
 
 .PHONY: check-security-deps-only
 check-security-deps-only: mkdir-reports  ## run security checks on package dependencies
@@ -529,9 +486,8 @@ check-security-deps-only: mkdir-reports  ## run security checks on package depen
 			--full-report \
 			-r "$(APP_ROOT)/requirements.txt" \
 			-r "$(APP_ROOT)/requirements-dev.txt" \
-			-r "$(APP_ROOT)/requirements-doc.txt" \
 			-r "$(APP_ROOT)/requirements-sys.txt" \
-			$(SAFETY_IGNORE) \
+			--policy-file "$(APP_ROOT)/.safety-policy.yml" \
 		1> >(tee "$(REPORTS_DIR)/check-security-deps.txt")'
 
 # FIXME: bandit excludes not working (https://github.com/PyCQA/bandit/issues/657), clean-src beforehand to avoid error
@@ -601,6 +557,7 @@ check-imports-only: mkdir-reports 	## check imports ordering and styles
 check-css-only: mkdir-reports  	## check CSS linting
 	@echo "Running CSS style checks..."
 	@npx --no-install stylelint \
+		--allow-empty-input \
 		--config "$(APP_ROOT)/.stylelintrc.json" \
 		--output-file "$(REPORTS_DIR)/check-css.txt" \
 		"$(APP_ROOT)/**/*.css"
@@ -746,3 +703,47 @@ bump:  ## bump version using VERSION specified as user input [make VERSION=<x.y.
 	@-echo "Updating package version ..."
 	@[ "${VERSION}" ] || ( echo ">> 'VERSION' is not set"; exit 1 )
 	@-bash -c '$(CONDA_CMD) bump2version $(BUMP_XARGS) --new-version "${VERSION}" patch;'
+
+## -- Docker targets ------------------------------------------------------------------------------------------------ ##
+
+.PHONY: docker-info
+docker-info:		## obtain docker image information
+	@echo "Docker image will be built as:"
+	@echo "$(APP_NAME):$(APP_VERSION)"
+	@echo "Docker image will be pushed as:"
+	@echo "$(DOCKER_REPO):$(APP_VERSION)"
+
+override DOCKER_ID = $(shell \
+	cat "$(APP_ROOT)/build/notebooks_ncml2stac.cwl" | grep 'dockerImageId' | cut -d ':' -f 2 | xargs \
+)
+.PHONY: docker-build-only
+docker-build-only:	## build the docker image
+	@echo "Building Docker image..."
+	@mkdir -p "$(APP_ROOT)/build"
+	bash -c '$(CONDA_CMD) jupyter-repo2cwl "$(APP_ROOT)" -o "$(APP_ROOT)/build"'
+	@echo "Generated Docker ID: $(DOCKER_ID)"
+	docker tag "$(DOCKER_ID)" "$(APP_NAME):latest"
+	docker tag "$(DOCKER_ID)" "$(APP_NAME):$(APP_VERSION)"
+	docker tag "$(DOCKER_ID)" "$(DOCKER_REPO):latest"
+	docker tag "$(DOCKER_ID)" "$(DOCKER_REPO):$(APP_VERSION)"
+
+.PHONY: docker-build
+docker-build: install-dev docker-build-only
+
+.PHONY: docker-push
+docker-push-base: docker-build			## push the docker image
+	docker push "$(DOCKER_REPO):$(APP_VERSION)"
+	docker push "$(DOCKER_REPO):latest"
+
+DOCKER_TEST_EXEC_ARGS ?=
+.PHONY: docker-test
+docker-test: docker-build	## execute test of the built docker images
+	@echo "Test built docker images"
+	docker run -ti "$(DOCKER_REPO):latest"
+
+.PHONY: docker-clean
+docker-clean:  ## remove all built docker images (only matching current/latest versions)
+	docker rmi -f "$(DOCKER_REPO):$(APP_VERSION)" || true
+	docker rmi -f "$(DOCKER_REPO):latest" || true
+	docker rmi -f "$(APP_NAME):$(APP_VERSION)" || true
+	docker rmi -f "$(APP_NAME):latest" || true

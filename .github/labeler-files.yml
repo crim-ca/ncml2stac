@@ -1,0 +1,34 @@
+# label rules used by PR labelers to match repository files
+# references:
+#   original: https://github.com/actions/labeler
+#   extended: https://github.com/ilyam8/periodic-pr-labeler
+
+## CI
+# all automation-related steps and files
+
+ci/operations:
+  - .*  # all '.<>' files
+  - ".github/**"
+  - MANIFEST.in
+  - hooks/**/*
+  - Makefile*
+  - Dockerfile*
+  - setup.*
+  - requirements*
+
+ci/doc:
+  - "*.rst"
+  - "*.md"
+  # ignore changelog as doc would almost always be tagged
+  - "!CHANGES.md"
+  - "*.example"
+  - LICENCE*
+  - docs/**/*
+
+ci/tests:
+  - tests/**/*
+
+## Triage
+
+triage/security:
+  - SECURITY.rst
