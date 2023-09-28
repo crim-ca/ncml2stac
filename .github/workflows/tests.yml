@@ -102,15 +102,15 @@ jobs:
           hash -r
           env | sort
       - name: Run Tests
-        run: make stop ${{ matrix.test-case }}
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v2
-        if: ${{ success() && matrix.test-case == 'test-coverage-only' }}
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./reports/coverage.xml
-          fail_ci_if_error: true
-          verbose: true
+        run: make ${{ matrix.test-case }}
+#      - name: Upload coverage report
+#        uses: codecov/codecov-action@v2
+#        if: ${{ success() && matrix.test-case == 'test-coverage-only' }}
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          files: ./reports/coverage.xml
+#          fail_ci_if_error: true
+#          verbose: true
 
   deploy-docker:
     needs: tests
