@@ -34,12 +34,6 @@ jobs:
       # override make command to install directly in active python
       CONDA_CMD: ""
       DOCKER_TEST_EXEC_ARGS: "-T"
-    services:
-      # Label used to access the service container
-      mongodb:
-        image: mongo:5.0  # DockerHub
-        ports:
-          - "27017:27017"
     strategy:
       matrix:
         os: [ubuntu-latest]
