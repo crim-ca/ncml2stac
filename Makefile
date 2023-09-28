@@ -417,7 +417,8 @@ coverage: test-coverage  ## alias to run test with coverage analysis
 ## -- [variants '<target>-only' without '-only' suffix are also available with pre-install setup]
 
 # autogen check variants with pre-install of dependencies using the '-only' target references
-CHECKS := pep8 lint security security-code security-deps doc8 docf fstring docstring links imports
+CHECKS := pep8 lint security security-code security-deps docf fstring docstring imports
+# FIXME: unused for now (needed for /docs): doc8 links
 CHECKS := $(addprefix check-, $(CHECKS))
 
 # items that should not install python dev packages should be added here instead
@@ -446,31 +447,22 @@ check-pep8-only: mkdir-reports 		## check for PEP8 code style issues
 	@echo "Running pep8 code style checks..."
 	@-rm -fr "$(REPORTS_DIR)/check-pep8.txt"
 	@bash -c '$(CONDA_CMD) \
-		flake8 --config="$(APP_ROOT)/setup.cfg" --output-file="$(REPORTS_DIR)/check-pep8.txt" --tee'
+		nbqa flake8 "$(APP_ROOT)" --config="$(APP_ROOT)/setup.cfg" --output-file="$(REPORTS_DIR)/check-pep8.txt" --tee'
 
 .PHONY: check-lint-only
 check-lint-only: mkdir-reports  	## check linting of code style
 	@echo "Running linting code style checks..."
 	@-rm -fr "$(REPORTS_DIR)/check-lint.txt"
 	@bash -c '$(CONDA_CMD) \
-		pylint \
+		nbqa pylint \
+			"$(APP_ROOT)" \
 			--load-plugins pylint_quotes \
 			--rcfile="$(APP_ROOT)/.pylintrc" \
 			--reports y \
-			"$(APP_ROOT)/weaver" "$(APP_ROOT)/tests" \
 		1> >(tee "$(REPORTS_DIR)/check-lint.txt")'
 
 .PHONY: check-security-only
 check-security-only: check-security-code-only check-security-deps-only  ## run security checks
-
-# FIXME: safety ignore file (https://github.com/pyupio/safety/issues/351)
-# ignored codes:
-#	42194: https://github.com/kvesteri/sqlalchemy-utils/issues/166  # not fixed since 2015
-#	42498: celery<5.2.0 bumps kombu>=5.2.1 with security fixes to {redis,sqs}  # mongo is used by default in Weaver
-#	43738: celery<5.2.2 CVE-2021-23727: trusts the messages and metadata stored in backends
-#	45185: pylint<2.13.0: unrelated doc extension (https://github.com/PyCQA/pylint/issues/5322)
-SAFETY_IGNORE := 42194 42498 43738 45185
-SAFETY_IGNORE := $(addprefix "-i ",$(SAFETY_IGNORE))
 
 .PHONY: check-security-deps-only
 check-security-deps-only: mkdir-reports  ## run security checks on package dependencies
@@ -481,9 +473,8 @@ check-security-deps-only: mkdir-reports  ## run security checks on package depen
 			--full-report \
 			-r "$(APP_ROOT)/requirements.txt" \
 			-r "$(APP_ROOT)/requirements-dev.txt" \
-			-r "$(APP_ROOT)/requirements-doc.txt" \
 			-r "$(APP_ROOT)/requirements-sys.txt" \
-			$(SAFETY_IGNORE) \
+			--policy-file "$(APP_ROOT)/.safety-policy.yml" \
 		1> >(tee "$(REPORTS_DIR)/check-security-deps.txt")'
 
 # FIXME: bandit excludes not working (https://github.com/PyCQA/bandit/issues/657), clean-src beforehand to avoid error
@@ -553,6 +544,7 @@ check-imports-only: mkdir-reports 	## check imports ordering and styles
 check-css-only: mkdir-reports  	## check CSS linting
 	@echo "Running CSS style checks..."
 	@npx --no-install stylelint \
+		--allow-empty-input \
 		--config "$(APP_ROOT)/.stylelintrc.json" \
 		--output-file "$(REPORTS_DIR)/check-css.txt" \
 		"$(APP_ROOT)/**/*.css"

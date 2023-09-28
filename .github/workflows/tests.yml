@@ -58,15 +58,15 @@ jobs:
             allow-failure: false
             test-case: check-all
           # documentation build
-          - os: ubuntu-latest
-            python-version: "3.10"
-            allow-failure: false
-            test-case: docs
+#          - os: ubuntu-latest
+#            python-version: "3.10"
+#            allow-failure: false
+#            test-case: docs
           # coverage test
-          - os: ubuntu-latest
-            python-version: "3.10"
-            allow-failure: false
-            test-case: test-coverage-only
+#          - os: ubuntu-latest
+#            python-version: "3.10"
+#            allow-failure: false
+#            test-case: test-coverage-only
     steps:
       - uses: actions/checkout@v2
         with:
