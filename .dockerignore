@@ -1,21 +1,22 @@
+## Docker
+docker
+.dockerignore
+
+## Git
+.git
+.github
+.gitignore
+
 ## Make
-[Mm]akefile.config
+[Mm]akefile*
 downloads
 
-## Environment
+## Environments
 env
-venv
-
-## Conda
-environment.yml
 
 ## Node
-package.json
 package-lock.json
 node_modules
-
-## Docker
-#Dockerfile
 
 ## Celery
 celeryconfig*
@@ -31,27 +32,23 @@ celerybeat-schedule.*
 *.sqlite
 *.egg[s]
 *.egg-info
-*egg[s]
-__pycache__
+*egg[s]__pycache__
 .python_history
-.ipynb_checkpoints
-notebooks/*.json
 
 ## Unit test / Coverage reports
-*.log
-*.lock
 .cache
 .coverage
+coverage
 .pylint.d/
 .pytest_cache
 .tox
-coverage.xml
-coverage
-reports
 nosetests.xml
 unit_tests/testdata.json
-result[s].xml
+tests
+**/*.log
+**/*.lock
 testdata.json
+reports
 
 ## R
 *.Rhistory
@@ -60,9 +57,6 @@ testdata.json
 .project
 .pydevproject
 .settings
-
-## VS Code
-*.vscode
 
 ## PyCharm
 *.idea
@@ -76,6 +70,9 @@ testdata.json
 ## Sublime Text Editor
 *.sublime*
 
+# sphinx
+docs
+
 ## External Sources
 [Bb]uild
 src
@@ -84,19 +81,15 @@ src
 .ipynb_checkpoints
 
 ## gcc/fortran
-*.o
-*.a
-*.mod
-*.out
+**/*.o
+**/*.a
+**/*.mod
+**/*.out
+**/*.json
 
-## snappy
-esa-snap_sentinel_unix_6_0.sh
-response.varfile
+## Project local configurations
+!config/*.example
+config/*
 
-## project process results
-*.tif
-*.zip
-./workflow[s]
-
-## old project sources
+## Old project sources
 [Bb]in

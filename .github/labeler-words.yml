@@ -1,0 +1,32 @@
+# label rules used by labelers to match words
+# references:
+#   - https://github.com/github/issue-labeler
+
+
+feature/CWL:
+  - '(CWL|cwl)'
+  - 'workflow'
+
+feature/docker:
+  - '(Docker|docker)'
+
+triage/feature:
+  - 'feature'
+
+triage/bug:
+  - 'bug'
+
+ci/operations:
+  - 'ci'
+  - 'travis'
+  - 'github'
+
+ci/tests:
+  - 'coverage'
+  - 'functional test[s]*'
+  - 'unittest[s]*'
+
+ci/doc:
+  - 'documentation'
+  - 'readthedocs'
+  - 'rtd'

@@ -1,2 +1,6 @@
 -r requirements-sys.txt
 STACpopulator @ https://github.com/crim-ca/stac-populator/archive/refs/heads/weaver-repo2cwl-ncml2stac.zip
+xncml
+
+# extra requirements for notebook
+shapely

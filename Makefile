@@ -10,8 +10,7 @@ MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 APP_ROOT    := $(abspath $(lastword $(MAKEFILE_NAME))/..)
 APP_NAME    := $(shell basename $(APP_ROOT))
 APP_VERSION ?= 0.0.0
-DOCKER_REPO ?=
-#DOCKER_REPO ?= docker-registry.crim.ca/ogc/weaver
+DOCKER_REPO ?= crimca/ncml2stac
 
 # guess OS (Linux, Darwin,...)
 OS_NAME := $(shell uname -s 2>/dev/null || echo "unknown")
@@ -340,7 +339,6 @@ clean-src:		## remove all *.pyc files
 	@echo "Removing python artifacts..."
 	@-find "$(APP_ROOT)" -type f -name "*.pyc" -exec rm {} \;
 	@-rm -rf ./build
-	@-rm -rf ./src
 
 .PHONY: clean-test
 clean-test:		## remove files created by tests and coverage analysis
@@ -378,77 +376,31 @@ ifeq ($(filter $(TEST_VERBOSITY),"--capture"),)
 endif
 
 # autogen tests variants with pre-install of dependencies using the '-only' target references
-TESTS := unit func cli workflow online offline no-tb14 spec coverage
+TESTS := coverage notebook
 TESTS := $(addprefix test-, $(TESTS))
 
 $(TESTS): test-%: install-dev test-%-only
 
 .PHONY: test
-test: clean-test test-all   ## alias for 'test-all' target
+test: clean-test test-all	## alias for 'test-all' target
 
 .PHONY: test-all
-test-all: install-dev test-only		## run all tests (including long running tests)
+test-all: $(TESTS) test-docker		## run all tests (including long running tests)
 
 .PHONY: test-only
 test-only: mkdir-reports			## run all tests but without prior validation of installed dependencies
-	@echo "Running all tests (including slow and online tests)..."
+	@echo "Running all tests..."
 	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
 		--junitxml "$(REPORTS_DIR)/test-results.xml"'
 
-.PHONY: test-unit-only
-test-unit-only: mkdir-reports 		## run unit tests (skip long running and online tests)
-	@echo "Running unit tests (skip slow and online tests)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not slow and not online and not functional" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-func-only
-test-func-only: mkdir-reports   	## run functional tests (online and usage specific)
-	@echo "Running functional tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "functional" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-cli-only
-test-cli-only: mkdir-reports   		## run WeaverClient and CLI tests
-	@echo "Running CLI tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "cli" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-workflow-only
-test-workflow-only:	mkdir-reports	## run EMS workflow End-2-End tests
-	@echo "Running workflow tests..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "workflow" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-online-only
-test-online-only: mkdir-reports  	## run online tests (running instance required)
-	@echo "Running online tests (running instance required)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "online" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-offline-only
-test-offline-only: mkdir-reports  	## run offline tests (not marked as online)
-	@echo "Running offline tests (not marked as online)..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not online" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-no-tb14-only
-test-no-tb14-only: mkdir-reports  	## run all tests except ones marked for 'Testbed-14'
-	@echo "Running all tests except ones marked for 'Testbed-14'..."
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-m "not testbed14" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-spec-only
-test-spec-only:	mkdir-reports  ## run tests with custom specification (pytest format) [make SPEC='<spec>' test-spec]
-	@echo "Running custom tests from input specification..."
-	@[ "${SPEC}" ] || ( echo ">> 'SPEC' is not set"; exit 1 )
-	@bash -c '$(CONDA_CMD) pytest tests $(TEST_VERBOSITY) \
-		-k "${SPEC}" --junitxml "$(REPORTS_DIR)/test-results.xml"'
-
-.PHONY: test-smoke
-test-smoke: docker-test     ## alias to 'docker-test' executing smoke test of built docker images
-
 .PHONY: test-docker
-test-docker: docker-test    ## alias to 'docker-test' execution smoke test of built docker images
+test-docker: docker-test	## alias to 'docker-test' execution smoke test of built docker images
+
+.PHONY: test-notebook-only
+test-notebook-only: mkdir-reports	## run notebook tests but without prior validation of installed dependencies
+	@echo "Running notebook tests..."
+	@bash -c '$(CONDA_CMD) pytest notebooks $(TEST_VERBOSITY) \
+			--junitxml "$(REPORTS_DIR)/test-notebook-results.xml"'
 
 .PHONY: test-coverage-only
 test-coverage-only: mkdir-reports  ## run all tests using coverage analysis
@@ -746,3 +698,47 @@ bump:  ## bump version using VERSION specified as user input [make VERSION=<x.y.
 	@-echo "Updating package version ..."
 	@[ "${VERSION}" ] || ( echo ">> 'VERSION' is not set"; exit 1 )
 	@-bash -c '$(CONDA_CMD) bump2version $(BUMP_XARGS) --new-version "${VERSION}" patch;'
+
+## -- Docker targets ------------------------------------------------------------------------------------------------ ##
+
+.PHONY: docker-info
+docker-info:		## obtain docker image information
+	@echo "Docker image will be built as:"
+	@echo "$(APP_NAME):$(APP_VERSION)"
+	@echo "Docker image will be pushed as:"
+	@echo "$(DOCKER_REPO):$(APP_VERSION)"
+
+override DOCKER_ID = $(shell \
+	cat "$(APP_ROOT)/build/notebooks_ncml2stac.cwl" | grep 'dockerImageId' | cut -d ':' -f 2 | xargs \
+)
+.PHONY: docker-build-only
+docker-build-only:	## build the docker image
+	@echo "Building Docker image..."
+	@mkdir -p "$(APP_ROOT)/build"
+	bash -c '$(CONDA_CMD) jupyter-repo2cwl "$(APP_ROOT)" -o "$(APP_ROOT)/build"'
+	@echo "Generated Docker ID: $(DOCKER_ID)"
+	docker tag "$(DOCKER_ID)" "$(APP_NAME):latest"
+	docker tag "$(DOCKER_ID)" "$(APP_NAME):$(APP_VERSION)"
+	docker tag "$(DOCKER_ID)" "$(DOCKER_REPO):latest"
+	docker tag "$(DOCKER_ID)" "$(DOCKER_REPO):$(APP_VERSION)"
+
+.PHONY: docker-build
+docker-build: install-dev docker-build-only
+
+.PHONY: docker-push
+docker-push-base: docker-build			## push the docker image
+	docker push "$(DOCKER_REPO):$(APP_VERSION)"
+	docker push "$(DOCKER_REPO):latest"
+
+DOCKER_TEST_EXEC_ARGS ?=
+.PHONY: docker-test
+docker-test: docker-build	## execute test of the built docker images
+	@echo "Test built docker images"
+	docker run -ti "$(DOCKER_REPO):latest"
+
+.PHONY: docker-clean
+docker-clean:  ## remove all built docker images (only matching current/latest versions)
+	docker rmi -f "$(DOCKER_REPO):$(APP_VERSION)" || true
+	docker rmi -f "$(DOCKER_REPO):latest" || true
+	docker rmi -f "$(APP_NAME):$(APP_VERSION)" || true
+	docker rmi -f "$(APP_NAME):latest" || true
