@@ -1,5 +1,8 @@
 -r requirements-sys.txt
-STACpopulator @ https://github.com/crim-ca/stac-populator/archive/refs/heads/weaver-repo2cwl-ncml2stac.zip
+# Following does not work
+# STACpopulator @ https://github.com/crim-ca/stac-populator/archive/refs/heads/weaver-repo2cwl-ncml2stac.zip
+# Also, editable '-e' required, otherwise module still not found...
+-e git+https://github.com/crim-ca/stac-populator@weaver-repo2cwl-ncml2stac#egg=STACpopulator
 xncml
 
 # extra requirements for notebook

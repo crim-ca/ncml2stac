@@ -339,6 +339,7 @@ clean-src:		## remove all *.pyc files
 	@echo "Removing python artifacts..."
 	@-find "$(APP_ROOT)" -type f -name "*.pyc" -exec rm {} \;
 	@-rm -rf ./build
+	@-rm -rf ./src
 
 .PHONY: clean-test
 clean-test:		## remove files created by tests and coverage analysis
