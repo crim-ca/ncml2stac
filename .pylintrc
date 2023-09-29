@@ -127,6 +127,7 @@ disable=C0111,missing-docstring,
 # note: (C0412, ungrouped-imports) is managed via isort tool, ignore false positives
 
 per-file-ignores =
+  notebooks/*:C0103,
   tests/*:R1729
 
 # Enable the message, report, category or checker with the given id(s). You can
