@@ -11,3 +11,5 @@ node_modules/
 docs/_build/
 docs/build/
 reports/
+build/
+src/
