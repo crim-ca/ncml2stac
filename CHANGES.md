@@ -5,7 +5,8 @@ Changes
 ------------------------------------------------------------------------------------------------------------------
 
 - Update STAC Item generation to transfer most NCML attribute parsing logic to `STACpopulator` implementation.
-- Use changes in https://github.com/crim-ca/stac-populator/pull/23 to evaluate `STACpopulator` new conversion logic.
+- Use changes in [crim-ca/stac-populator#23](https://github.com/crim-ca/stac-populator/pull/23) to evaluate updated
+  conversion logic of `STACpopulator`.
 
 [0.1.0](https://github.com/crim-ca/ncml2stac/tree/0.1.0) (2023-09-29)
 ------------------------------------------------------------------------------------------------------------------
