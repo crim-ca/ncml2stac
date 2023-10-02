@@ -46,13 +46,11 @@ To do so, use the following steps.
 
 ## References
 
--   NCML XML to STAC Item JSON conversion logic:
-    - [https://github.com/crim-ca/stac-populator](https://github.com/crim-ca/stac-populator)
-
--   Jupyter Notebook to CWL using `jupyter-repo2cwl`:
-    - [https://github.com/common-workflow-lab/ipython2cwl](https://github.com/common-workflow-lab/ipython2cwl)
-    - [https://ipython2cwl.readthedocs.io/en/latest/](https://ipython2cwl.readthedocs.io/en/latest/)
-
--   Git Repository to Docker with Jupyter Notebook using `jupyter-repo2docker`:
-    - [https://github.com/jupyterhub/repo2docker](https://github.com/jupyterhub/repo2docker)
-    - [https://repo2docker.readthedocs.io/](https://repo2docker.readthedocs.io/)
+- NCML XML to STAC Item JSON conversion logic:
+  - [https://github.com/crim-ca/stac-populator](https://github.com/crim-ca/stac-populator)
+- Jupyter Notebook to CWL using `jupyter-repo2cwl`:
+  - [https://github.com/common-workflow-lab/ipython2cwl](https://github.com/common-workflow-lab/ipython2cwl)
+  - [https://ipython2cwl.readthedocs.io/en/latest/](https://ipython2cwl.readthedocs.io/en/latest/)
+- Git Repository to Docker with Jupyter Notebook using `jupyter-repo2docker`:
+  - [https://github.com/jupyterhub/repo2docker](https://github.com/jupyterhub/repo2docker)
+  - [https://repo2docker.readthedocs.io/](https://repo2docker.readthedocs.io/)
