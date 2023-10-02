@@ -15,6 +15,7 @@
     "remark-lint-list-item-content-indent",
     "remark-lint-checkbox-content-indent",
     ["remark-lint-heading-style", "consistent"],
+    ["remark-lint-list-item-spacing", {"checkBlanks": true}],
     ["lint-fenced-code-marker", "`"],
     ["lint-list-item-indent", "mixed"],
     ["lint-maximum-line-length", 120],
