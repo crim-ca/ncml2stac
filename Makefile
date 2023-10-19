@@ -71,7 +71,8 @@ PIP_USE_FEATURE := `python -c '\
 	except ImportError: \
 		from distutils.version import LooseVersion as Version \
 	print(Version(pip.__version__) < Version("21.0"))'`
-PIP_XARGS ?=
+# when a repository must be cloned locally to build/install it, (w)ipe if path conflicts
+PIP_XARGS ?= --exists-action=w
 ifeq ("$(PIP_USE_FEATURE)", "True")
   PIP_XARGS := --use-feature=2020-resolver $(PIP_XARGS)
 endif

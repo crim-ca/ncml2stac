@@ -2,4 +2,4 @@
 # Following does not work
 # STACpopulator @ https://github.com/crim-ca/stac-populator/archive/refs/heads/weaver-repo2cwl-ncml2stac.zip
 # Also, editable '-e' required, otherwise module still not found...
--e git+https://github.com/Ouranosinc/stac-populator@collection_link#egg=STACpopulator
+-e git+https://github.com/crim-ca/stac-populator@arch-finalization-proposal#egg=STACpopulator
