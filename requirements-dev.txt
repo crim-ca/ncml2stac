@@ -35,7 +35,7 @@ pytest-notebook
 pytest-rerunfailures
 pycodestyle
 pydocstyle
-pylint>=2.15.4; python_version >= "3.7"
+pylint>=2.15.4,<3
 pylint-per-file-ignores; python_version >= "3.7"
 pylint_quotes
 safety
