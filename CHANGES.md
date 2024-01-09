@@ -4,7 +4,7 @@ Changes
 [Unreleased](https://github.com/crim-ca/ncml2stac/tree/master) (latest)
 ------------------------------------------------------------------------------------------------------------------
 
-<!-- list changes here, using '-' for each new entry, remove this when items are added -->
+- Update STAC Item generation from NCML using `STACpopulator==0.5.0` to employ all latest fixes.
 
 [0.2.0](https://github.com/crim-ca/ncml2stac/tree/0.2.0) (2023-10-02)
 ------------------------------------------------------------------------------------------------------------------
