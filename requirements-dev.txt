@@ -7,7 +7,7 @@
 jupyter
 jupyter-repo2docker
 ipython2cwl  # installs 'jupyter-repo2cwl'
-jinja2==3.0.3  # patch nbconvert (https://github.com/d2l-ai/d2l-book/issues/46)
+jinja2
 
 # ---------------------
 # General DevOps checks
