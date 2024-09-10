@@ -16,7 +16,7 @@ To do so, use the following steps.
 1.  Generate a *CWL* corresponding to the Notebook. This will also build a Docker image with all necessary dependencies.
 
     ```shell
-    jupyter-repo2cwl "https://github.com/crim-ca/ncml2sta" -o /tmp
+    jupyter-repo2cwl "https://github.com/crim-ca/ncml2stac" -o /tmp
     ```
 
     (replace the Git repository URL by the path if the clone locally)
